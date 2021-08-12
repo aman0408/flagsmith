@@ -212,6 +212,8 @@ rsa==4.7
     #   oauth2client
 ruamel.yaml==0.16.12
     # via drf-yasg2
+ruamel.yaml.clib==0.2.6
+    # via ruamel.yaml
 rx==3.1.1
     # via influxdb-client
 s3transfer==0.3.3
@@ -240,6 +242,8 @@ six==1.15.0
     #   protobuf
     #   python-dateutil
     #   twilio
+slack-sdk==3.8.0
+    # via -r requirements.in
 smsapi-client==2.4.3
     # via django-trench
 sqlparse==0.4.1
