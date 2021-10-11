@@ -2,6 +2,7 @@ import logging
 
 import boto3
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from flag_engine.environments.builders import build_environment_dict
@@ -41,7 +42,7 @@ def _send_audit_log_event_verification(instance, integration):
 
     if not hasattr(instance.project, integration.get("attr")):
         logger.debug(
-            f"No datadog integration configured for project {instance.project.id}"
+            f"No {integration.get('name')} integration configured for project {instance.project.id}"
         )
         return
 
@@ -131,9 +132,12 @@ def send_audit_log_event_to_slack(sender, instance, **kwargs):
     slack_config = _send_audit_log_event_verification(instance, integration)
     if not slack_config:
         return
-    # TODO: error handling
-    channel_id = slack_config.slack_config.get(
-        environment=instance.environment
-    ).channel_id
-    slack = SlackWrapper(api_token=slack_config.api_token, channel_id=channel_id)
+    env_config = slack_config.env_config.filter(
+        environment=instance.environment, enabled=True
+    ).first()
+    if not env_config:
+        return
+    slack = SlackWrapper(
+        api_token=slack_config.api_token, channel_id=env_config.channel_id
+    )
     _track_event_async(instance, slack)
